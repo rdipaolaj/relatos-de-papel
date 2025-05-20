@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import type { Book } from "@/types"
@@ -9,13 +11,25 @@ interface FeaturedBooksProps {
   books: Book[]
 }
 
+/**
+ * Componente que muestra libros destacados en la página principal.
+ *
+ * @param {FeaturedBooksProps} props - Propiedades del componente
+ * @param {Book[]} props.books - Array de libros destacados
+ * @returns {JSX.Element} Elemento JSX con los libros destacados
+ */
 export default function FeaturedBooks({ books }: FeaturedBooksProps) {
   const router = useRouter()
 
-  // Asegurarse de que tenemos al menos un libro destacado
   const featuredBook = books.length > 0 ? books[0] : null
 
   if (!featuredBook) return null
+
+  const handleAddToCart = (e: React.MouseEvent, bookId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    // Lógica para añadir al carrito
+  }
 
   return (
     <div className="featured-books">
@@ -99,6 +113,8 @@ export default function FeaturedBooks({ books }: FeaturedBooksProps) {
         
         .featured-books__cover {
           box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+          max-width: 100%;
+          height: auto;
         }
         
         .featured-books__main-content {
@@ -117,6 +133,7 @@ export default function FeaturedBooks({ books }: FeaturedBooksProps) {
           font-weight: 600;
           font-size: 0.9rem;
           margin-bottom: 15px;
+          align-self: flex-start;
         }
         
         .featured-books__main-title {
@@ -141,6 +158,8 @@ export default function FeaturedBooks({ books }: FeaturedBooksProps) {
           display: flex;
           align-items: center;
           justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 15px;
         }
         
         .featured-books__main-price {
@@ -151,7 +170,7 @@ export default function FeaturedBooks({ books }: FeaturedBooksProps) {
         
         .featured-books__secondary {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          grid-template-columns: repeat(3, 1fr);
           gap: 20px;
         }
         
@@ -163,6 +182,7 @@ export default function FeaturedBooks({ books }: FeaturedBooksProps) {
           box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
           cursor: pointer;
           transition: transform 0.3s ease, box-shadow 0.3s ease;
+          height: 100%;
         }
         
         .featured-books__card:hover {
@@ -181,23 +201,44 @@ export default function FeaturedBooks({ books }: FeaturedBooksProps) {
         .featured-books__card-content {
           flex: 1;
           padding: 15px;
+          display: flex;
+          flex-direction: column;
         }
         
         .featured-books__card-title {
           font-size: 1.1rem;
           margin-bottom: 5px;
           color: var(--text-color);
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          height: 2.8rem;
         }
         
         .featured-books__card-author {
           color: #666;
           margin-bottom: 10px;
           font-size: 0.9rem;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
         
         .featured-books__card-price {
           font-weight: 700;
           color: var(--primary-color);
+          margin-top: auto;
+        }
+        
+        @media (max-width: 992px) {
+          .featured-books__main-image {
+            flex: 0 0 250px;
+          }
+          
+          .featured-books__secondary {
+            grid-template-columns: repeat(3, 1fr);
+          }
         }
         
         @media (max-width: 768px) {
@@ -207,15 +248,47 @@ export default function FeaturedBooks({ books }: FeaturedBooksProps) {
           
           .featured-books__main-image {
             flex: 0 0 auto;
-            height: 300px;
+            height: auto;
+            padding: 20px 20px 0;
+          }
+          
+          .featured-books__cover {
+            max-height: 300px;
+            width: auto;
+            margin: 0 auto;
+            display: block;
+          }
+          
+          .featured-books__main-content {
+            padding: 20px;
           }
           
           .featured-books__main-title {
             font-size: 1.5rem;
           }
           
+          .featured-books__main-info {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          
+          .featured-books__main-info button {
+            width: 100%;
+          }
+          
+          .featured-books__secondary {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+        
+        @media (max-width: 480px) {
           .featured-books__secondary {
             grid-template-columns: 1fr;
+            gap: 15px;
+          }
+          
+          .featured-books__card {
+            max-width: 100%;
           }
         }
       `}</style>

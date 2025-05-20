@@ -61,6 +61,16 @@ export default function Header() {
     if (isCartOpen) setIsCartOpen(false)
   }
 
+  /**
+   * Navega a la ruta especificada y cierra el menú móvil.
+   *
+   * @param {string} path - Ruta a la que navegar
+   */
+  const handleNavigation = (path: string) => {
+    router.push(path)
+    setIsMobileMenuOpen(false)
+  }
+
   // Detectar scroll para cambiar el estilo del header
   useEffect(() => {
     const handleScroll = () => {
@@ -81,7 +91,6 @@ export default function Header() {
     setIsSearchOpen(false)
   }, [pathname])
 
-  // Cerrar resultados de búsqueda al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
@@ -92,6 +101,19 @@ export default function Header() {
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
+
+  // Prevenir scroll cuando el menú móvil está abierto
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = "auto"
+    }
+
+    return () => {
+      document.body.style.overflow = "auto"
+    }
+  }, [isMobileMenuOpen])
 
   /**
    * Maneja el cambio en el input de búsqueda y filtra los resultados.
@@ -143,10 +165,21 @@ export default function Header() {
   return (
     <header className={`header ${isScrolled ? "header--scrolled" : ""}`}>
       <div className="header__container">
-        <Link href="/home" className="header__logo-link">
-          <Image src="/book-logo.png" alt="Relatos de Papel" width={40} height={40} className="header__logo" />
-          <span className="header__title">Relatos de Papel</span>
-        </Link>
+        <div className="header__logo-container">
+          <Link href="/home" className="header__logo-link">
+            <div className="header__logo-wrapper">
+              <Image
+                src="/book-logo.png"
+                alt="Relatos de Papel"
+                width={40}
+                height={40}
+                className="header__logo"
+                priority
+              />
+            </div>
+            <h1 className="header__title">Relatos de Papel</h1>
+          </Link>
+        </div>
 
         <div className={`header__search ${isSearchOpen ? "header__search--open" : ""}`} ref={searchRef}>
           <div className="header__search-form">
@@ -182,18 +215,21 @@ export default function Header() {
         </div>
 
         <nav className={`header__nav ${isMobileMenuOpen ? "header__nav--mobile-open" : ""}`}>
-          <Link href="/home" className={`header__nav-link ${isActive("/home")}`}>
-            Inicio
-          </Link>
-          <Link href="/categories" className={`header__nav-link ${isActive("/categories")}`}>
-            Categorías
-          </Link>
-          <Link href="/new-releases" className={`header__nav-link ${isActive("/new-releases")}`}>
-            Novedades
-          </Link>
-          <Link href="/offers" className={`header__nav-link ${isActive("/offers")}`}>
-            Ofertas
-          </Link>
+          <button className="header__nav-item" onClick={() => handleNavigation("/home")}>
+            <span className={`header__nav-link ${isActive("/home")}`}>Inicio</span>
+          </button>
+
+          <button className="header__nav-item" onClick={() => handleNavigation("/categories")}>
+            <span className={`header__nav-link ${isActive("/categories")}`}>Categorías</span>
+          </button>
+
+          <button className="header__nav-item" onClick={() => handleNavigation("/new-releases")}>
+            <span className={`header__nav-link ${isActive("/new-releases")}`}>Novedades</span>
+          </button>
+
+          <button className="header__nav-item" onClick={() => handleNavigation("/offers")}>
+            <span className={`header__nav-link ${isActive("/offers")}`}>Ofertas</span>
+          </button>
         </nav>
 
         <div className="header__actions">
@@ -227,10 +263,13 @@ export default function Header() {
         .header {
           background-color: var(--light-color);
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-          position: sticky;
+          position: fixed;
           top: 0;
-          z-index: 100;
+          left: 0;
+          width: 100%;
+          z-index: 1000;
           transition: all 0.3s ease;
+          height: var(--header-height);
         }
         
         .header--scrolled {
@@ -241,9 +280,16 @@ export default function Header() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 15px 20px;
+          padding: 0 20px;
           max-width: 1200px;
           margin: 0 auto;
+          height: 100%;
+        }
+        
+        .header__logo-container {
+          display: flex;
+          align-items: center;
+          min-width: 200px;
         }
         
         .header__logo-link {
@@ -252,13 +298,29 @@ export default function Header() {
           text-decoration: none;
           color: var(--text-color);
           z-index: 101;
-          min-width: 180px;
+          flex-direction: row;
+        }
+        
+        .header__logo-wrapper {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-right: 10px;
+          flex-shrink: 0;
+        }
+        
+        .header__logo {
+          width: 40px;
+          height: 40px;
+          object-fit: contain;
         }
         
         .header__title {
           font-size: 1.5rem;
           font-weight: 700;
-          margin-left: 10px;
+          margin: 0;
+          padding: 0;
+          white-space: nowrap;
         }
         
         .header__search {
@@ -353,6 +415,16 @@ export default function Header() {
           gap: 30px;
         }
         
+        .header__nav-item {
+          background: none;
+          border: none;
+          padding: 0;
+          cursor: pointer;
+          font: inherit;
+          position: relative;
+          z-index: 1002;
+        }
+        
         .header__nav-link {
           text-decoration: none;
           color: var(--text-color);
@@ -423,6 +495,21 @@ export default function Header() {
           z-index: 101;
         }
         
+        .overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.5);
+          z-index: 999;
+          display: none;
+        }
+        
+        .overlay--visible {
+          display: block;
+        }
+        
         @media (max-width: 992px) {
           .header__search {
             max-width: 300px;
@@ -430,12 +517,19 @@ export default function Header() {
         }
         
         @media (max-width: 768px) {
+          .header__logo-container {
+            flex-direction: row;
+            align-items: center;
+          }
+          
           .header__logo-link {
-            min-width: auto;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
           }
           
           .header__title {
-            display: none;
+            font-size: 1.2rem;
           }
           
           .header__search {
@@ -478,10 +572,30 @@ export default function Header() {
           
           .header__nav--mobile-open {
             transform: translateX(0);
+            z-index: 1001;
+          }
+          
+          .header__nav-item {
+            width: auto;
+            padding: 10px 20px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+            margin: 5px 0;
+            display: block;
+            width: 80%; /* Ancho definido */
+            text-align: center; /* Centrar texto */
+          }
+          
+          .header__nav-item:hover {
+            background-color: rgba(0, 0, 0, 0.05);
           }
           
           .header__nav-link {
             font-size: 1.5rem;
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 10px 0;
           }
           
           .header__mobile-menu-button {
