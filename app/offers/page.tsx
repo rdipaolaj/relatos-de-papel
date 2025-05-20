@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { mockBooks } from "@/data/mockBooks"
 import BookList from "@/components/BookList"
 import OffersBanner from "@/components/OffersBanner"
@@ -8,9 +9,8 @@ import Newsletter from "@/components/Newsletter"
 // Simular ofertas con descuentos
 const booksWithOffers = mockBooks
   .map((book, index) => {
-    // Aplicar descuentos a algunos libros
     if (index % 2 === 0) {
-      const discountPercentage = 15 + (index % 3) * 5 // Descuentos de 15%, 20% o 25%
+      const discountPercentage = 15 + (index % 3) * 5
       const originalPrice = book.price
       const discountedPrice = originalPrice * (1 - discountPercentage / 100)
 
@@ -26,7 +26,21 @@ const booksWithOffers = mockBooks
   })
   .filter((book) => "discountPercentage" in book)
 
+/**
+ * Página de ofertas especiales.
+ * Muestra libros con descuentos y promociones.
+ *
+ * @returns {JSX.Element} Elemento JSX con la página de ofertas
+ */
 export default function OffersPage() {
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    setTimeout(() => {
+      setIsLoading(false)
+    }, 100)
+  }, [])
+
   return (
     <div className="offers-page">
       <OffersBanner />
@@ -58,13 +72,21 @@ export default function OffersPage() {
         </div>
 
         <div className="offers-page__books">
-          <BookList books={booksWithOffers} />
+          {isLoading ? (
+            <div className="offers-page__loading">Cargando ofertas...</div>
+          ) : (
+            <BookList books={booksWithOffers} />
+          )}
         </div>
 
         <Newsletter />
       </div>
 
       <style jsx>{`
+        .offers-page {
+          padding-top: 20px;
+        }
+        
         .offers-page__content {
           margin-top: 40px;
         }
@@ -82,6 +104,13 @@ export default function OffersPage() {
           margin: 0 auto 30px;
           color: #666;
           font-size: 1.1rem;
+        }
+        
+        .offers-page__loading {
+          text-align: center;
+          padding: 40px;
+          font-size: 1.2rem;
+          color: #666;
         }
         
         .offers-page__timer {
@@ -135,6 +164,14 @@ export default function OffersPage() {
         }
         
         @media (max-width: 768px) {
+          .offers-page__title {
+            font-size: 2rem;
+          }
+          
+          .offers-page__description {
+            font-size: 1rem;
+          }
+          
           .offers-page__timer-digits {
             flex-wrap: wrap;
           }

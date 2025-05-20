@@ -36,17 +36,27 @@ const booksWithCategories = mockBooks.map((book) => {
   }
 })
 
+/**
+ * Página de categorías que muestra libros filtrados por categoría.
+ *
+ * @returns {JSX.Element} Elemento JSX con la página de categorías
+ */
 export default function CategoriesPage() {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [filteredBooks, setFilteredBooks] = useState<(Book & { category: string })[]>(booksWithCategories)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    if (selectedCategory === "all") {
-      setFilteredBooks(booksWithCategories)
-    } else {
-      const filtered = booksWithCategories.filter((book) => book.category === selectedCategory)
-      setFilteredBooks(filtered)
-    }
+    setIsLoading(true)
+    setTimeout(() => {
+      if (selectedCategory === "all") {
+        setFilteredBooks(booksWithCategories)
+      } else {
+        const filtered = booksWithCategories.filter((book) => book.category === selectedCategory)
+        setFilteredBooks(filtered)
+      }
+      setIsLoading(false)
+    }, 100)
   }, [selectedCategory])
 
   return (
@@ -62,13 +72,19 @@ export default function CategoriesPage() {
         onSelectCategory={setSelectedCategory}
       />
 
-      {filteredBooks.length > 0 ? (
+      {isLoading ? (
+        <div className="categories-page__loading">Cargando libros...</div>
+      ) : filteredBooks.length > 0 ? (
         <BookList books={filteredBooks} />
       ) : (
         <p className="categories-page__no-results">No hay libros disponibles en esta categoría</p>
       )}
 
       <style jsx>{`
+        .categories-page {
+          padding-top: 20px;
+        }
+        
         .categories-page__header {
           text-align: center;
           margin-bottom: 40px;
@@ -87,11 +103,28 @@ export default function CategoriesPage() {
           margin: 0 auto;
         }
         
+        .categories-page__loading {
+          text-align: center;
+          padding: 40px;
+          font-size: 1.2rem;
+          color: #666;
+        }
+        
         .categories-page__no-results {
           text-align: center;
           padding: 40px;
           font-size: 1.2rem;
           color: #666;
+        }
+        
+        @media (max-width: 768px) {
+          .categories-page__title {
+            font-size: 2rem;
+          }
+          
+          .categories-page__description {
+            font-size: 1rem;
+          }
         }
       `}</style>
     </div>

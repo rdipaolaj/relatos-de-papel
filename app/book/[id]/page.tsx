@@ -23,9 +23,10 @@ export default function BookDetailPage() {
   const [relatedBooks, setRelatedBooks] = useState<Book[]>([])
   const { addToCart } = useCart()
   const [quantity, setQuantity] = useState(1)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Buscar el libro en los datos mock
+    setIsLoading(true)
     const foundBook = mockBooks.find((b) => b.id === id)
     setBook(foundBook || null)
 
@@ -35,6 +36,10 @@ export default function BookDetailPage() {
         .slice(0, 3)
       setRelatedBooks(related)
     }
+
+    setTimeout(() => {
+      setIsLoading(false)
+    }, 100)
   }, [id])
 
   /**
@@ -52,7 +57,7 @@ export default function BookDetailPage() {
     alert(`Se ha añadido "${book.title}" al carrito`)
   }
 
-  if (!book) {
+  if (isLoading || !book) {
     return (
       <div className="book-detail__loading">
         <div className="book-detail__loading-spinner"></div>
@@ -67,13 +72,16 @@ export default function BookDetailPage() {
     <div className="book-detail-page">
       <div className="book-detail">
         <div className="book-detail__image-container">
-          <Image
-            src={book.coverImage || "/placeholder.svg"}
-            alt={book.title}
-            width={400}
-            height={600}
-            className="book-detail__image"
-          />
+          <div className="book-detail__image-wrapper">
+            <Image
+              src={book.coverImage || "/placeholder.svg"}
+              alt={book.title}
+              fill
+              sizes="(max-width: 768px) 100vw, 400px"
+              className="book-detail__image"
+              priority
+            />
+          </div>
 
           {hasDiscount && <div className="book-detail__discount">-{book.discountPercentage}% DESCUENTO</div>}
 
@@ -163,7 +171,7 @@ export default function BookDetailPage() {
 
       <style jsx>{`
         .book-detail-page {
-          margin-top: 30px;
+          padding-top: 20px;
         }
         
         .book-detail {
@@ -175,13 +183,25 @@ export default function BookDetailPage() {
         
         .book-detail__image-container {
           position: relative;
+          width: 100%;
+          padding-top: 150%; /* Proporción 2:3 para portadas de libros */
+        }
+        
+        .book-detail__image-wrapper {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          border-radius: 8px;
+          overflow: hidden;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+          background-color: #f0f0f0;
         }
         
         .book-detail__image {
-          width: 100%;
-          height: auto;
-          border-radius: 8px;
-          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+          object-fit: cover;
+          object-position: center;
         }
         
         .book-detail__discount {
@@ -195,6 +215,7 @@ export default function BookDetailPage() {
           font-weight: 700;
           font-size: 1rem;
           transform: rotate(5deg);
+          z-index: 2;
         }
         
         .book-detail__badge {
@@ -205,6 +226,7 @@ export default function BookDetailPage() {
           border-radius: 4px;
           font-weight: 600;
           font-size: 0.9rem;
+          z-index: 2;
         }
         
         .book-detail__badge--new {
@@ -398,6 +420,12 @@ export default function BookDetailPage() {
             gap: 30px;
           }
           
+          .book-detail__image-container {
+            padding-top: 120%; /* Ajuste para móviles */
+            max-width: 300px;
+            margin: 0 auto;
+          }
+          
           .book-detail__title {
             font-size: 1.5rem;
           }
@@ -408,6 +436,15 @@ export default function BookDetailPage() {
           
           .book-detail__info {
             grid-template-columns: 1fr;
+          }
+          
+          .book-detail__actions {
+            flex-direction: column;
+          }
+          
+          .book-detail__quantity {
+            width: 100%;
+            justify-content: center;
           }
         }
       `}</style>

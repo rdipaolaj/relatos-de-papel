@@ -35,6 +35,7 @@ export default function BookCard({ book }: BookCardProps) {
    */
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
+    e.stopPropagation()
     addToCart(book)
   }
 
@@ -47,8 +48,8 @@ export default function BookCard({ book }: BookCardProps) {
           <Image
             src={book.coverImage || "/placeholder.svg"}
             alt={book.title}
-            width={200}
-            height={300}
+            width={300}
+            height={450}
             className="book-card__image"
           />
 
@@ -71,26 +72,23 @@ export default function BookCard({ book }: BookCardProps) {
               <span className="book-card__price">{book.price.toFixed(2)} €</span>
             )}
           </div>
-
-          <Button variant="primary" onClick={handleAddToCart} className="book-card__button">
-            Añadir al carrito
-          </Button>
         </div>
       </Link>
 
+      <Button variant="primary" onClick={handleAddToCart} className="book-card__button">
+        Añadir al carrito
+      </Button>
+
       <style jsx>{`
         .book-card {
+          display: flex;
+          flex-direction: column;
           border-radius: 8px;
           overflow: hidden;
           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          transition: transform 0.3s ease;
           background-color: var(--light-color);
           height: 100%;
-          display: flex;
-        }
-        
-        .book-card:hover {
-          transform: translateY(-5px);
+          width: 100%;
         }
         
         .book-card__link {
@@ -98,20 +96,22 @@ export default function BookCard({ book }: BookCardProps) {
           color: inherit;
           display: flex;
           flex-direction: column;
-          height: 100%;
-          width: 100%;
+          flex: 1;
         }
         
         .book-card__image-container {
           position: relative;
-          height: 250px;
+          width: 100%;
+          height: 300px;
           overflow: hidden;
+          background-color: #f0f0f0;
         }
         
         .book-card__image {
           width: 100%;
           height: 100%;
           object-fit: cover;
+          object-position: center;
           transition: transform 0.3s ease;
         }
         
@@ -129,6 +129,7 @@ export default function BookCard({ book }: BookCardProps) {
           border-radius: 4px;
           font-weight: 700;
           font-size: 0.9rem;
+          z-index: 2;
         }
         
         .book-card__badge {
@@ -139,6 +140,7 @@ export default function BookCard({ book }: BookCardProps) {
           border-radius: 4px;
           font-weight: 600;
           font-size: 0.8rem;
+          z-index: 2;
         }
         
         .book-card__badge--new {
@@ -147,7 +149,7 @@ export default function BookCard({ book }: BookCardProps) {
         }
         
         .book-card__content {
-          padding: 15px;
+          padding: 15px 15px 0;
           display: flex;
           flex-direction: column;
           flex: 1;
@@ -158,12 +160,21 @@ export default function BookCard({ book }: BookCardProps) {
           font-weight: 600;
           margin-bottom: 5px;
           line-height: 1.3;
+          height: 2.8rem;
+          overflow: hidden;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
         }
         
         .book-card__author {
           color: #666;
           margin-bottom: 10px;
           font-size: 0.9rem;
+          height: 1.3rem;
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
         }
         
         .book-card__price-container {
@@ -171,6 +182,7 @@ export default function BookCard({ book }: BookCardProps) {
           display: flex;
           align-items: center;
           gap: 10px;
+          height: 1.5rem;
         }
         
         .book-card__price {
@@ -190,8 +202,8 @@ export default function BookCard({ book }: BookCardProps) {
         }
         
         .book-card__button {
-          margin-top: auto;
-          width: 100%;
+          margin: 0 15px 15px;
+          width: calc(100% - 30px);
         }
       `}</style>
     </div>

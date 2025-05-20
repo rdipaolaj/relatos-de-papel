@@ -32,7 +32,14 @@ export default function HomeBanner() {
       </div>
 
       <div className="home-banner__image-container">
-        <Image src="/home-banner.png" alt="Relatos de Papel" width={500} height={400} className="home-banner__image" />
+        <Image
+          src="/home-banner.png"
+          alt="Relatos de Papel"
+          width={500}
+          height={400}
+          className="home-banner__image"
+          priority
+        />
       </div>
 
       <style jsx>{`
@@ -79,13 +86,19 @@ export default function HomeBanner() {
           padding: 20px;
         }
         
+        .home-banner__image {
+          max-width: 100%;
+          height: auto;
+          object-fit: contain;
+        }
+        
         @media (max-width: 768px) {
           .home-banner {
             flex-direction: column-reverse;
           }
           
           .home-banner__content {
-            padding: 30px;
+            padding: 30px 20px;
           }
           
           .home-banner__title {
@@ -94,10 +107,16 @@ export default function HomeBanner() {
           
           .home-banner__buttons {
             flex-direction: column;
+            width: 100%;
+          }
+          
+          .home-banner__button {
+            width: 100%;
           }
           
           .home-banner__image-container {
-            height: 250px;
+            height: 200px;
+            padding: 10px;
           }
         }
       `}</style>

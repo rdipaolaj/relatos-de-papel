@@ -1,11 +1,11 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { mockBooks } from "@/data/mockBooks"
 import BookList from "@/components/BookList"
 import NewReleasesBanner from "@/components/NewReleasesBanner"
 
 // Ordenar libros por año de publicación (simulando nuevos lanzamientos)
-// En un caso real, esto vendría de la API con una marca de "nuevo lanzamiento"
 const newReleases = [...mockBooks]
   .sort((a, b) => b.publishYear - a.publishYear)
   .slice(0, 4)
@@ -14,7 +14,21 @@ const newReleases = [...mockBooks]
     isNew: true,
   }))
 
+/**
+ * Página de nuevos lanzamientos.
+ * Muestra los libros más recientes y próximos lanzamientos.
+ *
+ * @returns {JSX.Element} Elemento JSX con la página de nuevos lanzamientos
+ */
 export default function NewReleasesPage() {
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    setTimeout(() => {
+      setIsLoading(false)
+    }, 100)
+  }, [])
+
   return (
     <div className="new-releases-page">
       <NewReleasesBanner />
@@ -26,7 +40,11 @@ export default function NewReleasesPage() {
         </p>
 
         <div className="new-releases-page__books">
-          <BookList books={newReleases} />
+          {isLoading ? (
+            <div className="new-releases-page__loading">Cargando novedades...</div>
+          ) : (
+            <BookList books={newReleases} />
+          )}
         </div>
 
         <div className="new-releases-page__coming-soon">
@@ -46,6 +64,10 @@ export default function NewReleasesPage() {
       </div>
 
       <style jsx>{`
+        .new-releases-page {
+          padding-top: 20px;
+        }
+        
         .new-releases-page__content {
           margin-top: 40px;
         }
@@ -67,6 +89,13 @@ export default function NewReleasesPage() {
         
         .new-releases-page__books {
           margin-bottom: 60px;
+        }
+        
+        .new-releases-page__loading {
+          text-align: center;
+          padding: 40px;
+          font-size: 1.2rem;
+          color: #666;
         }
         
         .new-releases-page__subtitle {
@@ -126,8 +155,23 @@ export default function NewReleasesPage() {
         }
         
         @media (max-width: 768px) {
+          .new-releases-page__title {
+            font-size: 2rem;
+          }
+          
+          .new-releases-page__description {
+            font-size: 1rem;
+          }
+          
           .new-releases-page__coming-soon-grid {
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .new-releases-page__coming-soon-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
           }
         }
       `}</style>
