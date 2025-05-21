@@ -5,11 +5,25 @@ import { useRouter } from "next/navigation"
 import { useCart } from "@/hooks/useCart"
 import Button from "@/components/Button"
 import CheckoutItem from "@/components/CheckoutItem"
+import OrderReceipt from "@/components/OrderReceipt"
+
+// Función para generar un número de pedido aleatorio
+const generateOrderNumber = () => {
+  const prefix = "RP"
+  const timestamp = new Date().getTime().toString().slice(-6)
+  const random = Math.floor(Math.random() * 1000)
+    .toString()
+    .padStart(3, "0")
+  return `${prefix}-${timestamp}-${random}`
+}
 
 export default function CheckoutPage() {
   const { cart, clearCart, totalPrice } = useCart()
   const router = useRouter()
   const [isProcessing, setIsProcessing] = useState(false)
+  const [showReceipt, setShowReceipt] = useState(false)
+  const [orderNumber, setOrderNumber] = useState("")
+  const [orderDate, setOrderDate] = useState<Date>(new Date())
 
   const handleCheckout = () => {
     setIsProcessing(true)
@@ -17,10 +31,21 @@ export default function CheckoutPage() {
     // Simulamos el proceso de pago
     setTimeout(() => {
       setIsProcessing(false)
-      alert("¡Pedido realizado con éxito!")
-      clearCart()
-      router.push("/home")
+
+      // Generar datos del pedido
+      const newOrderNumber = generateOrderNumber()
+      setOrderNumber(newOrderNumber)
+      setOrderDate(new Date())
+
+      // Mostrar el comprobante
+      setShowReceipt(true)
     }, 1500)
+  }
+
+  const handleCloseReceipt = () => {
+    setShowReceipt(false)
+    clearCart()
+    router.push("/home")
   }
 
   if (cart.length === 0) {
@@ -60,6 +85,79 @@ export default function CheckoutPage() {
           {isProcessing ? "Procesando..." : "Realizar pedido"}
         </Button>
       </div>
+
+      {showReceipt && (
+        <OrderReceipt
+          isOpen={showReceipt}
+          onClose={handleCloseReceipt}
+          orderItems={cart}
+          orderTotal={totalPrice}
+          orderNumber={orderNumber}
+          orderDate={orderDate}
+        />
+      )}
+
+      <style jsx>{`
+        .checkout {
+          max-width: 800px;
+          margin: 0 auto;
+        }
+        
+        .checkout__title {
+          font-size: 2rem;
+          margin-bottom: 30px;
+          text-align: center;
+        }
+        
+        .checkout__summary {
+          margin-bottom: 40px;
+        }
+        
+        .checkout__summary-title {
+          font-size: 1.5rem;
+          margin-bottom: 20px;
+          border-bottom: 1px solid var(--border-color);
+          padding-bottom: 10px;
+        }
+        
+        .checkout__items {
+          margin-bottom: 30px;
+        }
+        
+        .checkout__total {
+          display: flex;
+          justify-content: space-between;
+          font-size: 1.2rem;
+          font-weight: 600;
+          margin-top: 20px;
+          padding-top: 20px;
+          border-top: 1px solid var(--border-color);
+        }
+        
+        .checkout__actions {
+          display: flex;
+          justify-content: space-between;
+          margin-top: 30px;
+        }
+        
+        .checkout--empty {
+          text-align: center;
+          padding: 60px 0;
+        }
+        
+        .checkout__empty-message {
+          margin-bottom: 30px;
+          font-size: 1.2rem;
+          color: #666;
+        }
+        
+        @media (max-width: 768px) {
+          .checkout__actions {
+            flex-direction: column;
+            gap: 15px;
+          }
+        }
+      `}</style>
     </div>
   )
 }

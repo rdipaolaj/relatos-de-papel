@@ -7,6 +7,7 @@ import Link from "next/link"
 import type { Book } from "@/types"
 import Button from "./Button"
 import { useCart } from "@/hooks/useCart"
+import { useState, useEffect } from "react"
 
 interface BookCardProps {
   book: Book & {
@@ -26,6 +27,17 @@ interface BookCardProps {
  */
 export default function BookCard({ book }: BookCardProps) {
   const { addToCart } = useCart()
+  const [addedToCart, setAddedToCart] = useState(false)
+
+  // Resetear el estado de addedToCart después de un tiempo
+  useEffect(() => {
+    if (addedToCart) {
+      const timer = setTimeout(() => {
+        setAddedToCart(false)
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [addedToCart])
 
   /**
    * Maneja el evento de añadir al carrito.
@@ -37,12 +49,22 @@ export default function BookCard({ book }: BookCardProps) {
     e.preventDefault()
     e.stopPropagation()
     addToCart(book)
+    setAddedToCart(true)
   }
 
   const hasDiscount = book.originalPrice && book.discountPercentage
 
   return (
     <div className="book-card">
+      {addedToCart && (
+        <div className="book-card__notification">
+          <div className="book-card__notification-content">
+            <span className="book-card__notification-icon">✓</span>
+            <span>Añadido al carrito</span>
+          </div>
+        </div>
+      )}
+
       <Link href={`/book/${book.id}`} className="book-card__link">
         <div className="book-card__image-container">
           <Image
@@ -89,6 +111,7 @@ export default function BookCard({ book }: BookCardProps) {
           background-color: var(--light-color);
           height: 100%;
           width: 100%;
+          position: relative;
         }
         
         .book-card__link {
@@ -204,6 +227,39 @@ export default function BookCard({ book }: BookCardProps) {
         .book-card__button {
           margin: 0 15px 15px;
           width: calc(100% - 30px);
+        }
+        
+        .book-card__notification {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 10;
+          pointer-events: none;
+        }
+        
+        .book-card__notification-content {
+          background-color: rgba(46, 204, 113, 0.9);
+          color: white;
+          padding: 10px 20px;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+          animation: fadeInOut 2s ease-in-out;
+          white-space: nowrap;
+        }
+        
+        .book-card__notification-icon {
+          font-weight: bold;
+        }
+        
+        @keyframes fadeInOut {
+          0% { opacity: 0; transform: scale(0.8); }
+          15% { opacity: 1; transform: scale(1); }
+          85% { opacity: 1; transform: scale(1); }
+          100% { opacity: 0; transform: scale(0.8); }
         }
       `}</style>
     </div>
