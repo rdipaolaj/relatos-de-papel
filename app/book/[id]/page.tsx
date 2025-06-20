@@ -9,13 +9,6 @@ import { useCart } from "@/hooks/useCart"
 import Button from "@/components/Button"
 import BookList from "@/components/BookList"
 
-/**
- * Página de detalle de un libro específico.
- * Muestra información detallada del libro, permite añadir al carrito
- * y muestra libros relacionados.
- *
- * @returns {JSX.Element} Elemento JSX con la página de detalle del libro
- */
 export default function BookDetailPage() {
   const { id } = useParams()
   const router = useRouter()
@@ -23,41 +16,33 @@ export default function BookDetailPage() {
   const [relatedBooks, setRelatedBooks] = useState<Book[]>([])
   const { addToCart } = useCart()
   const [quantity, setQuantity] = useState(1)
-  const [isLoading, setIsLoading] = useState(true)
+  const [addedToCart, setAddedToCart] = useState(false)
 
   useEffect(() => {
-    setIsLoading(true)
+    // Buscar el libro en los datos mock
     const foundBook = mockBooks.find((b) => b.id === id)
     setBook(foundBook || null)
 
+    // Buscar libros relacionados (mismo autor o categoría)
     if (foundBook) {
       const related = mockBooks
         .filter((b) => b.id !== id && (b.author === foundBook.author || b.category === foundBook.category))
         .slice(0, 3)
       setRelatedBooks(related)
     }
-
-    setTimeout(() => {
-      setIsLoading(false)
-    }, 100)
   }, [id])
 
-  /**
-   * Maneja la acción de añadir el libro al carrito.
-   * Añade la cantidad seleccionada del libro al carrito.
-   */
-  const handleAddToCart = () => {
-    if (!book) return
-
-    for (let i = 0; i < quantity; i++) {
-      addToCart(book)
+  // Resetear el estado de addedToCart después de un tiempo
+  useEffect(() => {
+    if (addedToCart) {
+      const timer = setTimeout(() => {
+        setAddedToCart(false)
+      }, 3000)
+      return () => clearTimeout(timer)
     }
+  }, [addedToCart])
 
-    // Mostrar confirmación
-    alert(`Se ha añadido "${book.title}" al carrito`)
-  }
-
-  if (isLoading || !book) {
+  if (!book) {
     return (
       <div className="book-detail__loading">
         <div className="book-detail__loading-spinner"></div>
@@ -66,22 +51,37 @@ export default function BookDetailPage() {
     )
   }
 
+  const handleAddToCart = () => {
+    for (let i = 0; i < quantity; i++) {
+      addToCart(book)
+    }
+
+    // Mostrar notificación sutil en lugar de alert
+    setAddedToCart(true)
+  }
+
   const hasDiscount = "originalPrice" in book && "discountPercentage" in book
 
   return (
     <div className="book-detail-page">
+      {addedToCart && (
+        <div className="book-detail__notification">
+          <div className="book-detail__notification-content">
+            <span className="book-detail__notification-icon">✓</span>
+            <span>Producto añadido al carrito</span>
+          </div>
+        </div>
+      )}
+
       <div className="book-detail">
         <div className="book-detail__image-container">
-          <div className="book-detail__image-wrapper">
-            <Image
-              src={book.coverImage || "/placeholder.svg"}
-              alt={book.title}
-              fill
-              sizes="(max-width: 768px) 100vw, 400px"
-              className="book-detail__image"
-              priority
-            />
-          </div>
+          <Image
+            src={book.coverImage || "/placeholder.svg"}
+            alt={book.title}
+            width={400}
+            height={600}
+            className="book-detail__image"
+          />
 
           {hasDiscount && <div className="book-detail__discount">-{book.discountPercentage}% DESCUENTO</div>}
 
@@ -171,7 +171,43 @@ export default function BookDetailPage() {
 
       <style jsx>{`
         .book-detail-page {
-          padding-top: 20px;
+          margin-top: 30px;
+          position: relative;
+        }
+        
+        .book-detail__notification {
+          position: fixed;
+          top: 80px;
+          right: 20px;
+          z-index: 1000;
+          animation: slideIn 0.3s ease-out forwards;
+        }
+        
+        .book-detail__notification-content {
+          background-color: var(--success-color);
+          color: white;
+          padding: 12px 20px;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .book-detail__notification-icon {
+          font-weight: bold;
+          font-size: 1.2rem;
+        }
+        
+        @keyframes slideIn {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
         }
         
         .book-detail {
@@ -183,25 +219,13 @@ export default function BookDetailPage() {
         
         .book-detail__image-container {
           position: relative;
-          width: 100%;
-          padding-top: 150%; /* Proporción 2:3 para portadas de libros */
-        }
-        
-        .book-detail__image-wrapper {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          border-radius: 8px;
-          overflow: hidden;
-          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-          background-color: #f0f0f0;
         }
         
         .book-detail__image {
-          object-fit: cover;
-          object-position: center;
+          width: 100%;
+          height: auto;
+          border-radius: 8px;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
         
         .book-detail__discount {
@@ -215,7 +239,6 @@ export default function BookDetailPage() {
           font-weight: 700;
           font-size: 1rem;
           transform: rotate(5deg);
-          z-index: 2;
         }
         
         .book-detail__badge {
@@ -226,7 +249,6 @@ export default function BookDetailPage() {
           border-radius: 4px;
           font-weight: 600;
           font-size: 0.9rem;
-          z-index: 2;
         }
         
         .book-detail__badge--new {
@@ -420,12 +442,6 @@ export default function BookDetailPage() {
             gap: 30px;
           }
           
-          .book-detail__image-container {
-            padding-top: 120%; /* Ajuste para móviles */
-            max-width: 300px;
-            margin: 0 auto;
-          }
-          
           .book-detail__title {
             font-size: 1.5rem;
           }
@@ -438,13 +454,10 @@ export default function BookDetailPage() {
             grid-template-columns: 1fr;
           }
           
-          .book-detail__actions {
-            flex-direction: column;
-          }
-          
-          .book-detail__quantity {
-            width: 100%;
-            justify-content: center;
+          .book-detail__notification {
+            top: 70px;
+            left: 20px;
+            right: 20px;
           }
         }
       `}</style>
