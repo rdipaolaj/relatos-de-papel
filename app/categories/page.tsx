@@ -5,7 +5,9 @@ import { mockBooks } from "@/data/mockBooks"
 import BookList from "@/components/BookList"
 import CategoryFilter from "@/components/CategoryFilter"
 import type { Book } from "@/types"
+import { API_BASE_URL } from "@/config/utils"
 
+const CATEGORIES_URL = `${API_BASE_URL}/v1/api/categories/find-all`
 // Categorías disponibles
 const categories = [
   { id: "all", name: "Todas" },
@@ -46,6 +48,39 @@ export default function CategoriesPage() {
   const [filteredBooks, setFilteredBooks] = useState<(Book & { category: string })[]>(booksWithCategories)
   const [isLoading, setIsLoading] = useState(true)
 
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([
+    { id: "all", name: "Todas" }
+  ])
+  const [loadingCategories, setLoadingCategories] = useState(true)
+
+
+  useEffect(() => {
+    setLoadingCategories(true)
+    fetch(CATEGORIES_URL, {
+      headers: {
+        "X-Api-version": "1"
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        // Ajusta esto según la estructura real de tu respuesta
+        console.log("Data del API",data)
+        const apiCategories = Array.isArray(data)
+          ? data.map((cat: any) => ({
+              id: cat.id?.toString() ?? cat._id ?? cat.slug ?? "",
+              name: cat.name ?? cat.title ?? ""
+            }))
+          : []
+        setCategories([{ id: "all", name: "Todas" }, ...apiCategories])
+      })
+      .catch(() => {
+        setCategories([{ id: "all", name: "Todas" }])
+      })
+      .finally(() => setLoadingCategories(false))
+  }, [])
+
+  console.log("Categories:", categories)
+
   useEffect(() => {
     setIsLoading(true)
     setTimeout(() => {
@@ -71,6 +106,8 @@ export default function CategoriesPage() {
         selectedCategory={selectedCategory}
         onSelectCategory={setSelectedCategory}
       />
+
+
 
       {isLoading ? (
         <div className="categories-page__loading">Cargando libros...</div>
