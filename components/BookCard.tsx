@@ -72,6 +72,8 @@ export default function BookCard({ book }: BookCardProps) {
             alt={book.title}
             width={300}
             height={450}
+            style={{ width: "100%", height: "auto" }}
+            priority
             className="book-card__image"
           />
 

@@ -6,12 +6,13 @@ export interface Book {
   title: string
   author: string
   price: number
-  coverImage: string
+  coverImage?: string
   description: string
   isbn: string
   pages: number
   publishYear: number
   category?: string
+  stock: number        // stock disponible
   originalPrice?: number
   discountPercentage?: number
   isNew?: boolean

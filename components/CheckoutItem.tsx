@@ -19,6 +19,8 @@ export default function CheckoutItem({ item }: CheckoutItemProps) {
           alt={book.title}
           width={80}
           height={120}
+          style={{ width: "100%", height: "auto" }}
+          priority
           className="checkout-item__image"
         />
       </div>

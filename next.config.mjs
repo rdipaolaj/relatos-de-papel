@@ -7,6 +7,10 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
+    domains: [
+      'res.cloudinary.com',
+      // u otros hosts de imágenes que uses…
+    ],
     unoptimized: true,
   },
 }

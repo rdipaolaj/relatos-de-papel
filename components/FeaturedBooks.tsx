@@ -69,6 +69,8 @@ export default function FeaturedBooks({ books }: FeaturedBooksProps) {
                 alt={book.title}
                 width={120}
                 height={180}
+                style={{ width: "100%", height: "auto" }}
+                priority
                 className="featured-books__card-cover"
               />
             </div>

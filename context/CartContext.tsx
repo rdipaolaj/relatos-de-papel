@@ -10,6 +10,7 @@ interface CartContextType {
   updateQuantity: (bookId: string, quantity: number) => void
   clearCart: () => void
   totalPrice: number
+  getQuantity: (bookId: string) => number
 }
 
 export const CartContext = createContext<CartContextType>({
@@ -19,6 +20,7 @@ export const CartContext = createContext<CartContextType>({
   updateQuantity: () => { },
   clearCart: () => { },
   totalPrice: 0,
+  getQuantity: () => 0,
 })
 
 interface CartProviderProps {
@@ -64,14 +66,14 @@ export function CartProvider({ children }: CartProviderProps) {
    * @param {Book} book - Libro a añadir al carrito
    */
   const addToCart = (book: Book) => {
-    setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.book.id === book.id)
-
-      if (existingItem) {
-        return prevCart.map((item) => (item.book.id === book.id ? { ...item, quantity: item.quantity + 1 } : item))
-      } else {
-        return [...prevCart, { book, quantity: 1 }]
+    setCart(prev => {
+      const idx = prev.findIndex(i => i.book.id === book.id)
+      if (idx >= 0) {
+        const copy = [...prev]
+        copy[idx] = { ...copy[idx], quantity: copy[idx].quantity + 1 }
+        return copy
       }
+      return [...prev, { book, quantity: 1 }]
     })
   }
 
@@ -81,7 +83,7 @@ export function CartProvider({ children }: CartProviderProps) {
    * @param {string} bookId - ID del libro a eliminar
    */
   const removeFromCart = (bookId: string) => {
-    setCart((prevCart) => prevCart.filter((item) => item.book.id !== bookId))
+    setCart(prev => prev.filter(i => i.book.id !== bookId))
   }
 
   /**
@@ -94,31 +96,38 @@ export function CartProvider({ children }: CartProviderProps) {
   const updateQuantity = (bookId: string, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(bookId)
-      return
+    } else {
+      setCart(prev =>
+          prev.map(i =>
+              i.book.id === bookId ? { ...i, quantity } : i
+          )
+      )
     }
-
-    setCart((prevCart) => prevCart.map((item) => (item.book.id === bookId ? { ...item, quantity } : item)))
   }
 
   /**
    * Vacía completamente el carrito.
    */
-  const clearCart = () => {
-    setCart([])
+  const clearCart = () => setCart([])
+
+  const getQuantity = (bookId: string) => {
+    const item = cart.find(i => i.book.id === bookId)
+    return item ? item.quantity : 0
   }
 
   return (
-    <CartContext.Provider
-      value={{
-        cart,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-        totalPrice,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
+      <CartContext.Provider
+          value={{
+            cart,
+            addToCart,
+            removeFromCart,
+            updateQuantity,
+            clearCart,
+            totalPrice,
+            getQuantity,    // <-- lo exponemos aquí
+          }}
+      >
+        {children}
+      </CartContext.Provider>
   )
 }
