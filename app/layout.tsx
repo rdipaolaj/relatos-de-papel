@@ -5,6 +5,9 @@ import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import { CartProvider } from "@/context/CartContext"
 
+// 1) Importa el Toaster de sonner
+import { Toaster } from "sonner"
+
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
@@ -22,21 +25,24 @@ export const metadata = {
  * @returns {JSX.Element} Elemento JSX con la estructura principal de la aplicación
  */
 export default function RootLayout({
-  children,
-}: {
+                                     children,
+                                   }: {
   children: React.ReactNode
 }) {
   return (
-    <html lang="es">
+      <html lang="es">
       <body className={inter.className}>
-        <CartProvider>
-          <div className="app">
-            <Header />
-            <main className="app__main">{children}</main>
-            <Footer />
-          </div>
-        </CartProvider>
+      {/* 2) Monta el Toaster aquí, sólo una vez */}
+      <Toaster position="top-right" />
+
+      <CartProvider>
+        <div className="app">
+          <Header />
+          <main className="app__main">{children}</main>
+          <Footer />
+        </div>
+      </CartProvider>
       </body>
-    </html>
+      </html>
   )
 }

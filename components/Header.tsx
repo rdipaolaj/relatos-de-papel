@@ -201,7 +201,8 @@ export default function Header() {
               {searchResults.map((book) => (
                 <div key={book.id} className="header__search-result" onClick={() => handleBookClick(book.id)}>
                   <div className="header__search-result-image">
-                    <Image src={book.coverImage || "/placeholder.svg"} alt={book.title} width={40} height={60} />
+                    <Image src={book.coverImage || "/placeholder.svg"} alt={book.title} width={40} height={60} style={{ width: "100%", height: "auto" }}
+                           priority/>
                   </div>
                   <div className="header__search-result-info">
                     <h4 className="header__search-result-title">{book.title}</h4>
