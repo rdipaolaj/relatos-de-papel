@@ -21,6 +21,8 @@ export default function CartItem({ item }: CartItemProps) {
           alt={book.title}
           width={60}
           height={90}
+          style={{ width: "100%", height: "auto" }}
+          priority
           className="cart-item__image"
         />
       </div>

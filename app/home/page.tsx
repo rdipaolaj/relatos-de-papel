@@ -6,8 +6,8 @@ import HomeBanner from "@/components/HomeBanner"
 import FeaturedBooks from "@/components/FeaturedBooks"
 import Newsletter from "@/components/Newsletter"
 import Testimonials from "@/components/Testimonials"
-import type { Book } from "@/types/book"
 import { searchBooks } from "@/services/bookService"
+import { Book } from "@/types"
 
 export default function HomePage() {
   const [books, setBooks] = useState<Book[]>([])

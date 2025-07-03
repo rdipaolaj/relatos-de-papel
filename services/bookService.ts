@@ -1,4 +1,5 @@
-import { Book } from "@/types/book";
+
+import { Book } from "@/types";
 import { BookSearchRequest } from "@/types/bookSearchRequest";
 import { PageResponse } from "@/types/pageResponse";
 

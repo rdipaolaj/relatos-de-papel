@@ -6,7 +6,7 @@ import Link from "next/link"
 import Button from "./Button"
 import { useCart } from "@/hooks/useCart"
 import { useState, useEffect } from "react"
-import { Book } from "@/types/book"
+import { Book } from "@/types"
 
 interface BookCardProps {
   book: Book & {
@@ -52,7 +52,10 @@ export default function BookCard({ book }: BookCardProps) {
           <Image
             src={book.coverImage || "/placeholder.svg"}
             alt={book.title}
-            fill
+            width={300}
+            height={450}
+            style={{ width: "100%", height: "auto" }}
+            priority
             className="book-card__image"
           />
 
@@ -62,7 +65,7 @@ export default function BookCard({ book }: BookCardProps) {
 
         <div className="book-card__content">
           <h3 className="book-card__title">{book.title}</h3>
-          <p className="book-card__author">{book.authorName}</p>
+          <p className="book-card__author">{book.author}</p>
 
           <div className="book-card__price-container">
             {hasDiscount ? (
