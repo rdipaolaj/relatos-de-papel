@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import { useParams, useRouter } from "next/navigation"
-import type { Book } from "@/types"
 import { mockBooks } from "@/data/mockBooks"
 import { useCart } from "@/hooks/useCart"
 import Button from "@/components/Button"
 import BookList from "@/components/BookList"
+import { Book } from "@/types/book"
 
 export default function BookDetailPage() {
   const { id } = useParams()
@@ -90,25 +90,25 @@ export default function BookDetailPage() {
 
         <div className="book-detail__content">
           <h1 className="book-detail__title">{book.title}</h1>
-          <p className="book-detail__author">por {book.author}</p>
+          <p className="book-detail__author">por {book.authorName}</p>
 
           <div className="book-detail__price-container">
             {hasDiscount ? (
               <>
                 <span className="book-detail__original-price">{book.originalPrice?.toFixed(2)} €</span>
-                <span className="book-detail__price book-detail__price--discounted">{book.price.toFixed(2)} €</span>
+                <span className="book-detail__price book-detail__price--discounted">{book.price?.toFixed(2)} €</span>
                 <span className="book-detail__saving">
                   Ahorras: {((book.originalPrice || 0) - book.price).toFixed(2)} €
                 </span>
               </>
             ) : (
-              <span className="book-detail__price">{book.price.toFixed(2)} €</span>
+              <span className="book-detail__price">{book.price?.toFixed(2)} €</span>
             )}
           </div>
 
           <div className="book-detail__description">
             <h3 className="book-detail__section-title">Descripción:</h3>
-            <p>{book.description}</p>
+            <p>{book.summary}</p>
           </div>
 
           <div className="book-detail__info">
