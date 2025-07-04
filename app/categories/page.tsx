@@ -5,11 +5,10 @@ import { mockBooks } from "@/data/mockBooks"
 import BookList from "@/components/BookList"
 import CategoryFilter from "@/components/CategoryFilter"
 import type { Book } from "@/types"
-import { API_BASE_URL } from "@/config/utils"
 import { Princess_Sofia } from "next/font/google"
 
-const CATEGORIES_URL = `${API_BASE_URL}/v1/api/categories/find-all`
-const BOOKS_URL = `${API_BASE_URL}/v1/api/books/search`
+const CATEGORIES_URL = `${process.env.NEXT_PUBLIC_API_BASE_CATALOGUE}/v1/api/categories/find-all`
+const BOOKS_URL = `${process.env.NEXT_PUBLIC_API_BASE_CATALOGUE}/v1/api/books/search`
 /**
  * Página de categorías que muestra libros filtrados por categoría.
  *
