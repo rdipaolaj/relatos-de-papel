@@ -13,7 +13,7 @@ export interface Book {
   publishYear: number
   category?: string
   categoryId?: string // ID de la categoría, opcional si no se usa
-  stock: number        // stock disponible
+  stock: number
   originalPrice?: number
   discountPercentage?: number
   isNew?: boolean

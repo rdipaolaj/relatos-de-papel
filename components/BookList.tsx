@@ -1,6 +1,6 @@
 "use client"
 
-import type { Book } from "@/types"
+import { Book } from "@/types"
 import BookCard from "./BookCard"
 
 interface BookListProps {
