@@ -1,64 +1,99 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { mockBooks } from "@/data/mockBooks"
 import BookList from "@/components/BookList"
 import CategoryFilter from "@/components/CategoryFilter"
 import type { Book } from "@/types"
+import { Princess_Sofia } from "next/font/google"
 
-// Categorías disponibles
-const categories = [
-  { id: "all", name: "Todas" },
-  { id: "fiction", name: "Ficción" },
-  { id: "classic", name: "Clásicos" },
-  { id: "fantasy", name: "Fantasía" },
-  { id: "romance", name: "Romance" },
-  { id: "mystery", name: "Misterio" },
-]
-
-// Asignar categorías a los libros mock
-const booksWithCategories = mockBooks.map((book) => {
-  let category = "fiction"
-
-  if (book.title.includes("Harry Potter")) {
-    category = "fantasy"
-  } else if (book.title.includes("Quijote") || book.title.includes("Orgullo") || book.title.includes("Crimen")) {
-    category = "classic"
-  } else if (book.title.includes("Orgullo")) {
-    category = "romance"
-  } else if (book.title.includes("sombra") || book.title.includes("1984")) {
-    category = "mystery"
-  }
-
-  return {
-    ...book,
-    category,
-  }
-})
-
+const CATEGORIES_URL = `${process.env.NEXT_PUBLIC_API_BASE}/ms-books-catalogue/v1/api/categories/find-all`
+const BOOKS_URL = `${process.env.NEXT_PUBLIC_API_BASE}/ms-books-catalogue/v1/api/books/search`
 /**
  * Página de categorías que muestra libros filtrados por categoría.
  *
  * @returns {JSX.Element} Elemento JSX con la página de categorías
  */
 export default function CategoriesPage() {
-  const [selectedCategory, setSelectedCategory] = useState("all")
-  const [filteredBooks, setFilteredBooks] = useState<(Book & { category: string })[]>(booksWithCategories)
+  
+  
   const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    setIsLoading(true)
-    setTimeout(() => {
-      if (selectedCategory === "all") {
-        setFilteredBooks(booksWithCategories)
-      } else {
-        const filtered = booksWithCategories.filter((book) => book.category === selectedCategory)
-        setFilteredBooks(filtered)
-      }
-      setIsLoading(false)
-    }, 100)
-  }, [selectedCategory])
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([
+    { id: "0", name: "Todas" }
+  ])
+  const [selectedCategory, setSelectedCategory] = useState("0")
+  const [loadingCategories, setLoadingCategories] = useState(true)
+  
+  const [books, setBooks] = useState<Book[]>([])
+  const [loadingBooks, setLoadingBooks] = useState(true)
 
+  // Cargar categorías desde la API
+
+  useEffect(() => {
+    ;(async () => {
+
+      try {
+        setLoadingCategories(true)
+
+        const res  = await fetch(CATEGORIES_URL, {
+          headers: { "X-Api-version": "1" },
+        })
+        const body = await res.json()
+        const apiCategories =
+          Array.isArray(body?.data)
+            ? body.data.map((cat: any) => ({
+                id:  cat.id?.toString() ?? cat._id ?? cat.slug ?? "",
+                name: cat.name ?? cat.title ?? "",
+              }))
+            : []
+        
+        setCategories([{ id: "0", name: "Todas" }, ...apiCategories])
+      } catch (err) {
+        // fallback: sólo categoría “Todas”
+        setCategories([{ id: "0", name: "Todas" }])
+        console.error("Error cargando categorías:", err)
+      } finally {
+        setLoadingCategories(false)
+      }
+    })  ()
+  }, [])
+
+  useEffect(() => {
+    ;(async () => {
+      try {
+        setLoadingBooks(true)
+        const res  = await fetch(BOOKS_URL, { headers: { "X-Api-Version": "1" } })
+        const data = await res.json()
+        const apiBooks: Book[] = Array.isArray(data?.data) 
+          ? data.data.map((b: any) => ({
+              id         : b.id         ?? b._id,
+              title      : b.title      ?? "",
+              author     : b.authorName     ?? "",
+              coverUrl   : b.coverUrl   ?? "",
+              category   : b.categoryName ?? "",
+              categoryId : b.categoryId?.toString() ?? b.categoryId ?? "0",
+              price      : b.price      ?? 0,              
+              // ...otros campos de Book
+            }))
+          : []
+        setBooks(apiBooks)
+      } catch (err) {
+        console.error("Error cargando libros:", err)
+        setBooks([])
+      } finally {
+        setLoadingBooks(false)
+      }
+    })()
+  }, [])
+
+  /* --------- Libros filtrados (memo = cache) ---------------------- */
+  const filteredBooks = useMemo(() => {
+    if (selectedCategory === "0") return books
+    return books.filter((bk) => bk.categoryId === selectedCategory  )
+    console.log("Libros filtrados:", books) //OK
+  }, [books, selectedCategory])
+  /* --------------------------------------------------------------- */
   return (
     <div className="categories-page">
       <div className="categories-page__header">
@@ -69,10 +104,12 @@ export default function CategoriesPage() {
       <CategoryFilter
         categories={categories}
         selectedCategory={selectedCategory}
-        onSelectCategory={setSelectedCategory}
+        onSelectCategory={setSelectedCategory}        
       />
 
-      {isLoading ? (
+
+
+      {loadingBooks ? (
         <div className="categories-page__loading">Cargando libros...</div>
       ) : filteredBooks.length > 0 ? (
         <BookList books={filteredBooks} />
