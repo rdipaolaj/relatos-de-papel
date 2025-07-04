@@ -12,7 +12,7 @@ export interface Book {
   pages: number
   publishYear: number
   category?: string
-  stock: number        // stock disponible
+  stock: number
   originalPrice?: number
   discountPercentage?: number
   isNew?: boolean

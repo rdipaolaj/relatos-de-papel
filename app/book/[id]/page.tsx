@@ -195,13 +195,13 @@ export default function BookDetailPage() {
             {hasDiscount ? (
               <>
                 <span className="book-detail__original-price">{book.originalPrice?.toFixed(2)} €</span>
-                <span className="book-detail__price book-detail__price--discounted">{book.price.toFixed(2)} €</span>
+                <span className="book-detail__price book-detail__price--discounted">{book.price?.toFixed(2)} €</span>
                 <span className="book-detail__saving">
                   Ahorras: {((book.originalPrice || 0) - book.price).toFixed(2)} €
                 </span>
               </>
             ) : (
-              <span className="book-detail__price">{book.price.toFixed(2)} €</span>
+              <span className="book-detail__price">{book.price?.toFixed(2)} €</span>
             )}
           </div>
 
