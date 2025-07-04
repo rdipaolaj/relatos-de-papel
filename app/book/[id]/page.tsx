@@ -7,157 +7,149 @@ import type { Book } from "@/types"
 import { useCart } from "@/hooks/useCart"
 import Button from "@/components/Button"
 import BookList from "@/components/BookList"
-import {toast} from "sonner";
+import { toast } from "sonner"
 
 export default function BookDetailPage() {
   const { id } = useParams()
   const router = useRouter()
   const [book, setBook] = useState<Book | null>(null)
-  const [related, setRelated] = useState<Book[]>([])
   const [relatedBooks, setRelatedBooks] = useState<Book[]>([])
   const { addToCart, getQuantity } = useCart()
   const [quantity, setQuantity] = useState(1)
   const [addedToCart, setAddedToCart] = useState(false)
   const [errorMsg, setErrorMsg] = useState("")
 
+  useEffect(() => {
+    if (!id) return
 
-    useEffect(() => {
-        if (!id) return
+    async function load() {
+      try {
+        // 1) Carga el libro por su id dinámico usando el proxy
+        const resBook = await fetch(`/api/books/find-by-id/${id}`, {
+          headers: { "X-Api-Version": "1" },
+        })
 
-        async function load() {
-            try {
-                // 1) Carga el libro por su id dinámico
-                const resBook = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_BASE}/v1/api/books/find-by-id/${id}`,
-                    { headers: { "X-Api-Version": "1" } }
-                )
-                if (!resBook.ok) throw new Error("No pude cargar el libro")
-                const { data: dto } = (await resBook.json()) as { data: any }
+        if (!resBook.ok) throw new Error("No pude cargar el libro")
+        const { data: dto } = (await resBook.json()) as { data: any }
 
-                // 2) Mapea del DTO al tipo local
-                const mapped: Book = {
-                    id: dto.id,
-                    title: dto.title,
-                    author: dto.authorName,
-                    price: dto.price,
-                    coverImage: dto.coverImageUrl,
-                    description: dto.summary,
-                    isbn: dto.isbn,
-                    pages: dto.pages,
-                    publishYear: new Date(dto.publicationDate).getFullYear(),
-                    category: dto.categoryName,
-                    stock: dto.stock,
-                }
-                setBook(mapped)
-
-                // 3) Trae recomendaciones por autor y categoría
-                const [byAuthorRes, byCatRes] = await Promise.all([
-                    fetch(
-                        `${process.env.NEXT_PUBLIC_API_BASE}/v1/api/books/search?authorId=${dto.authorId}`,
-                        { headers: { "X-Api-Version": "1" } }
-                    ),
-                    fetch(
-                        `${process.env.NEXT_PUBLIC_API_BASE}/v1/api/books/search?categoryId=${dto.categoryId}`,
-                        { headers: { "X-Api-Version": "1" } }
-                    ),
-                ])
-                const [{ data: authList }, { data: catList }] = await Promise.all([
-                    byAuthorRes.json(),
-                    byCatRes.json(),
-                ])
-
-                // 4) Une ambos arrays, elimina duplicados y excluye el libro actual
-                const combined = [...authList, ...catList] as any[]
-                const uniq = new Map<string, Book>()
-                combined.forEach((b) => {
-                    if (b.id !== id && !uniq.has(b.id)) {
-                        uniq.set(b.id, {
-                            id: b.id,
-                            title: b.title,
-                            author: b.authorName,
-                            price: b.price,
-                            coverImage: b.coverImageUrl,
-                            description: b.summary,
-                            isbn: b.isbn,
-                            pages: b.pages,
-                            publishYear: new Date(b.publicationDate).getFullYear(),
-                            category: b.categoryName,
-                            stock: b.stock,
-                        })
-                    }
-                })
-                // 5) Toma los primeros 4
-                setRelatedBooks(Array.from(uniq.values()).slice(0, 4))
-            } catch (err) {
-                console.error(err)
-                setErrorMsg("Error cargando datos. Intenta de nuevo más tarde.")
-            }
+        // 2) Mapea del DTO al tipo local
+        const mapped: Book = {
+          id: dto.id,
+          title: dto.title,
+          author: dto.author, // Cambié de dto.authorName a dto.author
+          price: dto.price,
+          coverImage: dto.coverImage, // Cambié de dto.coverImageUrl a dto.coverImage
+          description: dto.description, // Cambié de dto.summary a dto.description
+          isbn: dto.isbn,
+          pages: dto.pages || 0, // Agregar fallback si no existe
+          publishYear: new Date(dto.publicationDate).getFullYear(),
+          category: dto.category, // Cambié de dto.categoryName a dto.category
+          stock: dto.stock,
         }
 
-        load()
-    }, [id])
+        setBook(mapped)
 
-  // Resetear el estado de addedToCart después de un tiempo
-    useEffect(() => {
-        if (addedToCart) {
-            const t = setTimeout(() => setAddedToCart(false), 3000)
-            return () => clearTimeout(t)
-        }
-    }, [addedToCart])
+        // 3) Trae recomendaciones por autor y categoría usando el proxy
+        const [byAuthorRes, byCatRes] = await Promise.all([
+          fetch(`/api/books/search?authorId=${dto.authorId}`, {
+            headers: { "X-Api-Version": "1" },
+          }),
+          fetch(`/api/books/search?categoryId=${dto.categoryId}`, {
+            headers: { "X-Api-Version": "1" },
+          }),
+        ])
 
-    if (!book) {
-        return (
-            <div className="book-detail__loading">
-                <div className="book-detail__loading-spinner" />
-                <p>Cargando información del libro…</p>
-            </div>
-        )
+        const [{ data: authList }, { data: catList }] = await Promise.all([byAuthorRes.json(), byCatRes.json()])
+
+        // 4) Une ambos arrays, elimina duplicados y excluye el libro actual
+        const combined = [...authList, ...catList] as any[]
+        const uniq = new Map<string, Book>()
+        combined.forEach((b) => {
+          if (b.id !== id && !uniq.has(b.id)) {
+            uniq.set(b.id, {
+              id: b.id,
+              title: b.title,
+              author: b.author, // Cambié de b.authorName a b.author
+              price: b.price,
+              coverImage: b.coverImage, // Cambié de b.coverImageUrl a b.coverImage
+              description: b.description, // Cambié de b.summary a b.description
+              isbn: b.isbn,
+              pages: b.pages || 0,
+              publishYear: new Date(b.publicationDate).getFullYear(),
+              category: b.category, // Cambié de b.categoryName a b.category
+              stock: b.stock,
+            })
+          }
+        })
+
+        // 5) Toma los primeros 4
+        setRelatedBooks(Array.from(uniq.values()).slice(0, 4))
+      } catch (err) {
+        console.error(err)
+        setErrorMsg("Error cargando datos. Intenta de nuevo más tarde.")
+      }
     }
 
-    const handleAddToCart = async () => {
-        if (!book) return;
+    load()
+  }, [id])
 
-        try {
-            // 1) Traigo el stock más reciente del servidor (sin modificar nada en BBDD)
-            const res = await fetch(
-                `${process.env.NEXT_PUBLIC_API_BASE}/ms-books-catalogue/v1/api/books/find-by-id/${book.id}`,
-                {
-                    headers: {
-                        "X-Api-Version": "1",
-                    },
-                }
-            );
-            if (!res.ok) throw new Error("No pude validar el stock");
-            console.log(res)
-            const { data: fresh } = await res.json() as { data: Book };
-            const latestStock = fresh.stock;
+  // Resetear el estado de addedToCart después de un tiempo
+  useEffect(() => {
+    if (addedToCart) {
+      const t = setTimeout(() => setAddedToCart(false), 3000)
+      return () => clearTimeout(t)
+    }
+  }, [addedToCart])
 
-            // 2) ¿Cuánto llevo ya en el carrito?
-            const already = getQuantity(book.id);
+  if (!book) {
+    return (
+      <div className="book-detail__loading">
+        <div className="book-detail__loading-spinner" />
+        <p>Cargando información del libro…</p>
+      </div>
+    )
+  }
 
-            console.log(latestStock);
-            console.log(already);
-            console.log(quantity);
+  const handleAddToCart = async () => {
+    if (!book) return
 
-            // 3) Validación
-            if (already + quantity > latestStock) {
-                toast.error(`Superaste el maximo del stock ${quantity}, las unidades disponibles son ${latestStock}.`);
-                return;
-            }
+    try {
+      // 1) Traigo el stock más reciente del servidor usando el proxy
+      const res = await fetch(`/api/books/catalogue/find-by-id/${book.id}`, {
+        headers: {
+          "X-Api-Version": "1",
+        },
+      })
 
-            // 4) Si cabe, lo meto en el carrito en memoria
-            for (let i = 0; i < quantity; i++) {
-                addToCart(book);
-            }
-            toast.success("¡Producto añadido al carrito!");
+      if (!res.ok) throw new Error("No pude validar el stock")
+      console.log(res)
+      const { data: fresh } = (await res.json()) as { data: Book }
+      const latestStock = fresh.stock
 
-        } catch (err) {
-            console.error(err);
-            toast.error("Error validando stock. Intenta de nuevo.");
-        }
-    };
+      // 2) ¿Cuánto llevo ya en el carrito?
+      const already = getQuantity(book.id)
+      console.log(latestStock)
+      console.log(already)
+      console.log(quantity)
 
-    const hasDiscount = "originalPrice" in book && "discountPercentage" in book
+      // 3) Validación
+      if (already + quantity > latestStock) {
+        toast.error(`Superaste el maximo del stock ${quantity}, las unidades disponibles son ${latestStock}.`)
+        return
+      }
+
+      // 4) Si cabe, lo meto en el carrito en memoria
+      for (let i = 0; i < quantity; i++) {
+        await addToCart(book)
+      }
+      toast.success("¡Producto añadido al carrito!")
+    } catch (err) {
+      console.error(err)
+      toast.error("Error validando stock. Intenta de nuevo.")
+    }
+  }
+
+  const hasDiscount = "originalPrice" in book && "discountPercentage" in book
 
   return (
     <div className="book-detail-page">
